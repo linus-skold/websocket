@@ -1,6 +1,4 @@
-﻿//#include <iostream>
-///*
-//0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+﻿//0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 //+-+-+-+-+-------+-+-------------+-------------------------------+
 //|F|R|R|R| opcode|M| Payload len |    Extended payload length    |
 //|I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
@@ -17,82 +15,8 @@
 //+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
 //|                     Payload Data continued ...                |
 //+---------------------------------------------------------------+
-//*/
-//struct WebSocketHeader
-//{
-//	union
-//	{
-//		struct {
-//			unsigned int FIN		: 1;
-//			unsigned int RSV1		: 1;
-//			unsigned int RSV2		: 1;
-//			unsigned int RSV3		: 1;
-//			unsigned int OP_CODE	: 4;
-//			unsigned int MASK		: 1;
-//			unsigned int PAYLOAD	: 7;
-//
-//		};
-//
-//		uint16_t short_header;
-//	};
-//};
-//
-//
-//
-//unsigned int check_length(char * pData)
-//{
-//	//WebSocketHeader* header = (WebSocketHeader*)pData;
-//	WebSocketHeader* header = nullptr;
-//	memcpy(header, &pData[0], 2);
-//
-//	uint16_t x;
-//	memcpy(&x, &pData[16], 2);
-//	
-//	uint64_t y;
-//	memcpy(&y, &pData[16], 8);
-//
-//
-//
-//
-//	if (header->PAYLOAD <= 125)
-//	{
-//		return header->PAYLOAD;
-//	}
-//	else if (header->PAYLOAD == 126)
-//	{
-//		//we done
-//	}
-//	else if(header->PAYLOAD == 127)
-//	{
-//		//we done
-//	}
-//	else
-//	{
-//		//an error has occurred
-//	}
-//	
-//
-//
-//
-//}
-//
-//
-//
-//
-//
-//
-//
-//int main()
-//{
-//
-//
-//
-//
-//	std::getchar();
-//	return 0;
-//}
+constexpr char* magic_string = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-constexpr char* magic_string = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //ask mozilla
 #include <iostream>
 
 #define WIN32_LEAN_AND_MEAN
@@ -106,34 +30,42 @@ constexpr char* magic_string = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //ask moz
 #include "SHA1.hpp"
 #include <wincrypt.h>
 
+
+const char * cmp_list[] = {
+	"0xb3", "0x7a", "0x4f", "0x2c", "0xc0", "0x62", "0x4f", "0x16", "0x90", "0xf6", "0x46", "0x06", "0xcf", "0x38", "0x59", "0x45", "0xb2", "0xbe", "0xc4", "0xea"
+};
+
 std::string create_ws_key(const char* request_key)
 {
-
 	std::string key(request_key);
 	key += magic_string;
 
 	SHA1 checksum;
 	checksum.update(key);
 	std::string result = checksum.final();
+	uint8_t* byte_list = checksum.get_bytelist();
+	uint32_t* digest = checksum.get_digest();
 
-
-	//const BYTE* pObj = new BYTE[result.length()];
-	std::vector<BYTE> chars_to_byte(result.begin(), result.end());
-
-	const int len = chars_to_byte.size();
+	//flip the byte order
+	unsigned char byteResult[20];
+	for (int i = 0; i < 5; i++) {
+		byteResult[(i * 4) + 3] = digest[i] & 0x000000ff;
+		byteResult[(i * 4) + 2] = (digest[i] & 0x0000ff00) >> 8;
+		byteResult[(i * 4) + 1] = (digest[i] & 0x00ff0000) >> 16;
+		byteResult[(i * 4) + 0] = (digest[i] & 0xff000000) >> 24;
+	}
 
 	DWORD length = 0;
-	CryptBinaryToStringA(&chars_to_byte[0], len, CRYPT_STRING_BASE64, nullptr, &length);
+	CryptBinaryToStringA(byteResult, 20, CRYPT_STRING_BASE64, nullptr, &length);
 
-	char* buffer = new char[length];
+	char* accept_key_b64 = new char[length];
 
-	CryptBinaryToStringA(&chars_to_byte[0], len, CRYPT_STRING_BASE64, buffer, &length);
+	CryptBinaryToStringA(byteResult, 20, CRYPT_STRING_BASE64, accept_key_b64, &length);
 
-
-	std::string value(buffer);
-	delete buffer;
-	buffer = nullptr;
-
+	
+	std::string value(accept_key_b64);
+	delete accept_key_b64;
+	accept_key_b64 = nullptr;
 	return value;
 
 }
@@ -185,6 +117,14 @@ constexpr char* http_request = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: web
 
 int main()
 {
+
+	/*std::string ws_result = create_ws_key("dGhlIHNhbXBsZSBub25jZQ==");
+
+	printf("final:\t\t%s\n", ws_result.c_str());
+
+	std::getchar();
+	return 0;*/
+
 	std::vector<char> http_request_buffer;
 	size_t header_len = strlen(http_request);
 
@@ -218,7 +158,7 @@ int main()
 
 
 
-	err = getaddrinfo(nullptr, "8080", &hints, &result);
+	err = getaddrinfo(nullptr, "8091", &hints, &result);
 	if (err != 0)
 	{
 		printf("failed with err %d\n", err);
@@ -302,6 +242,8 @@ int main()
 			{
 				http_request_buffer.push_back(accept_key[i]);
 			}
+			http_request_buffer.push_back('\r');
+			http_request_buffer.push_back('\n');
 			http_request_buffer.push_back('\r');
 			http_request_buffer.push_back('\n');
 

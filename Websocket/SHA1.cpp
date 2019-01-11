@@ -287,11 +287,12 @@ std::string SHA1::final()
 	std::ostringstream result;
 	for (size_t i = 0; i < sizeof(digest) / sizeof(digest[0]); i++)
 	{
-		result << std::hex << std::setfill('0') << std::setw(8);
-		result << digest[i];
+		result << std::setw(8) << std::hex << digest[i];
 	}
 
 	/* Reset for next run */
+
+	memcpy(byte_list, digest, sizeof(uint32_t) * 5);
 	reset(digest, buffer, transforms);
 
 	return result.str();

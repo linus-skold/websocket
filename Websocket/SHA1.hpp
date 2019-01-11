@@ -35,8 +35,17 @@ public:
 	std::string final();
 	static std::string from_file(const std::string &filename);
 
+	uint8_t* get_bytelist() { return byte_list; }
+	uint32_t* get_digest() { return digest_old; }
+
 private:
+	
 	uint32_t digest[5];
+
+	union {
+		uint8_t byte_list[20];
+		uint32_t digest_old[5];
+	};
 	std::string buffer;
 	uint64_t transforms;
 };
