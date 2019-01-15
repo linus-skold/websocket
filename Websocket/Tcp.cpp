@@ -94,7 +94,7 @@ namespace Socket
 
 		m_IsRunning = true;
 
-		m_ListenerThread = std::thread([&, callback]() {
+		std::thread listen_thread([&, callback]() {
 
 			while (m_IsRunning)
 			{
@@ -110,7 +110,7 @@ namespace Socket
 
 
 		});
-		m_ListenerThread.detach();
+		listen_thread.detach();
 
 	}
 

@@ -23,7 +23,6 @@ namespace Socket
 
 		void Cleanup();
 		SOCKET m_Socket;
-		std::thread m_ListenerThread;
 
 	};
 };

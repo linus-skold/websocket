@@ -30,17 +30,17 @@ namespace ws
 
 		//I need a callback on connect
 		
-		void ConnectionAccepted(SOCKET socket);
 	private:
+		void ConnectionAccepted(SOCKET socket);
 		
 		Socket::Tcp m_Listener; //will listen for new connections
 
 
-		const char* CreateAcceptKey(const char* request_key);
-		const char* EncodeBase64(uint8_t* byte);
-		void HashSha1(const char* request_key, uint8_t* out_binary);
-		void FlipByteOrder(uint8_t* byte, uint32_t* digest);
-		
+		std::string CreateAcceptKey(std::string request_key) const;
+		std::string EncodeBase64(uint8_t* byte) const;
+		void HashSha1(const std::string& request_key, uint8_t* out_binary) const;
+		std::string GetRequestKey(const char* buffer) const;
+
 	protected:
 
 
