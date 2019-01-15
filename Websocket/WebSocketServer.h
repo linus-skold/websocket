@@ -25,14 +25,17 @@ namespace ws
 	class WebSocketServer
 	{
 	public:
-		WebSocketServer(const char* port);
+		WebSocketServer(uint16_t port);
 		~WebSocketServer();
 
 		//I need a callback on connect
 		
-		void ConnectionAccepted();
+		void ConnectionAccepted(SOCKET socket);
 	private:
-		Socket::Tcp m_Socket;
+		
+		Socket::Tcp m_Listener; //will listen for new connections
+
+
 		const char* CreateAcceptKey(const char* request_key);
 		const char* EncodeBase64(uint8_t* byte);
 		void HashSha1(const char* request_key, uint8_t* out_binary);

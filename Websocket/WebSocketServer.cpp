@@ -14,20 +14,18 @@ namespace ws
 	constexpr char* http_request = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ";
 	constexpr char* magic_string = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-	
-	WebSocketServer::WebSocketServer(const char* port)
+	WebSocketServer::WebSocketServer(uint16_t port)
 	{
-		m_Socket = Socket::Tcp(port, [&] { ConnectionAccepted(); });
+		m_Listener.Bind(port, [&](SOCKET socket) { WebSocketServer::ConnectionAccepted(socket); });
 	}
 
 	WebSocketServer::~WebSocketServer()
 	{
 	}
 
-	void WebSocketServer::ConnectionAccepted()
+	void WebSocketServer::ConnectionAccepted(SOCKET socket)
 	{
-		int apa;
-		apa = 5;
+		printf("Connection accepted!\n");
 	}
 
 	const char* WebSocketServer::CreateAcceptKey(const char* request_key)

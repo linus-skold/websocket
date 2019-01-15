@@ -1,7 +1,3 @@
-﻿  WebSocketServer.cpp
-  Tcp.cpp
-  Generating Code...
-e:\programming\websocket\websocket\websocketserver.cpp(61): error C4716: 'ws::WebSocketServer::HashSha1': must return a value
-  Compiling...
-  Source.cpp
-  Generating Code...
+﻿  Tcp.cpp
+  Websocket.vcxproj -> E:\Programming\websocket\Debug\Websocket.exe
+  Websocket.vcxproj -> E:\Programming\websocket\Debug\Websocket.pdb (Partial PDB)
