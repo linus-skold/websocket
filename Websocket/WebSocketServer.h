@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include "Tcp.h"
+
 namespace ws
 {
 	struct WebsocketHeader
@@ -23,16 +25,17 @@ namespace ws
 	class WebSocketServer
 	{
 	public:
-		WebSocketServer(const char* ip_and_port);
+		WebSocketServer(const char* port);
 		~WebSocketServer();
 
 		//I need a callback on connect
-
+		
+		void ConnectionAccepted();
 	private:
-
+		Socket::Tcp m_Socket;
 		const char* CreateAcceptKey(const char* request_key);
 		const char* EncodeBase64(uint8_t* byte);
-		uint8_t* HashSha1(const char* request_key);
+		void HashSha1(const char* request_key, uint8_t* out_binary);
 		void FlipByteOrder(uint8_t* byte, uint32_t* digest);
 		
 	protected:

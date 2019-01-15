@@ -25,7 +25,7 @@ namespace Socket
 		return str;
 	}
 
-	Tcp::Tcp(const char* listen_to_port, FSocketAccept accpet_callback)
+	Tcp::Tcp(const char* listen_to_port, FAcceptCallback accept_callback)
 	{
 		WSADATA wsaData;
 		SOCKET listen_socket = INVALID_SOCKET;
@@ -84,8 +84,6 @@ namespace Socket
 		}
 
 		//end setup listener
-
-
 
 		//wait for connection, this can be put on a thread? so it's non-blocking? 
 		client_socket = accept(listen_socket, NULL, NULL);

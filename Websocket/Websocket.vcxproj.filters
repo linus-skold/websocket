@@ -24,12 +24,18 @@
     <ClCompile Include="WebSocketServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Tcp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SHA1.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="WebSocketServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tcp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

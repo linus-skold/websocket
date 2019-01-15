@@ -1,14 +1,21 @@
 #pragma once
+#include <functional>
 
 namespace Socket
 {
 
-	typedef void(*FSocketAccept)();
+	typedef std::function<void()> FAcceptCallback;
+
 	class Tcp
 	{
 	public:
-		Tcp(const char* listen_to_port, FSocketAccept accpet_callback);
+		Tcp() = default;
+		Tcp(const char* listen_to_port, FAcceptCallback accept_callback);
 		~Tcp();
+	
+	private:
+		FAcceptCallback m_AcceptCallback;
+
 
 	};
 };
