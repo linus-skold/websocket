@@ -15,90 +15,12 @@
 //+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
 //|                     Payload Data continued ...                |
 //+---------------------------------------------------------------+
-constexpr char* magic_string = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 #include <iostream>
-
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <WinSock2.h>
-#include <ws2tcpip.h>
 #include <string.h>
 #include <vector>
-#pragma comment (lib, "Ws2_32.lib")
-
-#include "SHA1.hpp"
-#include <wincrypt.h>
 
 
-const char * cmp_list[] = {
-	"0xb3", "0x7a", "0x4f", "0x2c", "0xc0", "0x62", "0x4f", "0x16", "0x90", "0xf6", "0x46", "0x06", "0xcf", "0x38", "0x59", "0x45", "0xb2", "0xbe", "0xc4", "0xea"
-};
-
-std::string create_ws_key(const char* request_key)
-{
-	std::string key(request_key);
-	key += magic_string;
-
-	SHA1 checksum;
-	checksum.update(key);
-	std::string result = checksum.final();
-	uint8_t* byte_list = checksum.get_bytelist();
-	uint32_t* digest = checksum.get_digest();
-
-	//flip the byte order
-	unsigned char byteResult[20];
-	for (int i = 0; i < 5; i++) {
-		byteResult[(i * 4) + 3] = digest[i] & 0x000000ff;
-		byteResult[(i * 4) + 2] = (digest[i] & 0x0000ff00) >> 8;
-		byteResult[(i * 4) + 1] = (digest[i] & 0x00ff0000) >> 16;
-		byteResult[(i * 4) + 0] = (digest[i] & 0xff000000) >> 24;
-	}
-
-	DWORD length = 0;
-	CryptBinaryToStringA(byteResult, 20, CRYPT_STRING_BASE64, nullptr, &length);
-
-	char* accept_key_b64 = new char[length];
-
-	CryptBinaryToStringA(byteResult, 20, CRYPT_STRING_BASE64, accept_key_b64, &length);
-
-	
-	std::string value(accept_key_b64);
-	delete accept_key_b64;
-	accept_key_b64 = nullptr;
-	return value;
-
-}
-
-
-struct WebsocketHeader
-{
-	union
-	{
-		struct
-		{
-			uint32_t FIN : 1;
-			uint32_t RSV1 : 1;
-			uint32_t RSV2 : 1;
-			uint32_t RSV3 : 1;
-			uint32_t OPCODE : 4;
-			uint32_t MASK : 1;
-			uint32_t PAYLOAD : 7;
-		};
-		uint16_t HEADER;
-	};
-};
-
-
-std::string LastErr()
-{
-	char* str = nullptr;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-				  NULL, WSAGetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-				  (LPSTR)&str, 0, NULL);
-	return str;
-}
 
 std::string get_key(const char* buffer)
 {
@@ -112,18 +34,11 @@ std::string get_key(const char* buffer)
 
 
 
-constexpr char* http_request = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ";
 
 
 int main()
 {
 
-	/*std::string ws_result = create_ws_key("dGhlIHNhbXBsZSBub25jZQ==");
-
-	printf("final:\t\t%s\n", ws_result.c_str());
-
-	std::getchar();
-	return 0;*/
 
 	std::vector<char> http_request_buffer;
 	size_t header_len = strlen(http_request);

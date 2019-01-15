@@ -32,3 +32,11 @@
 *.app
 
 *.db
+
+*.ilk
+*.suo
+*.tlog
+*.vcxproj
+*.idb
+*.pdb
+*.opendb
