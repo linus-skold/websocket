@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 #include "Tcp.h"
 
 namespace ws
@@ -34,7 +35,7 @@ namespace ws
 		void ConnectionAccepted(SOCKET socket);
 		
 		Socket::Tcp m_Listener; //will listen for new connections
-
+		std::vector<SOCKET> m_Clients;
 
 		std::string CreateAcceptKey(std::string request_key) const;
 		std::string EncodeBase64(uint8_t* byte) const;

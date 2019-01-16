@@ -10,7 +10,24 @@
 
 #include "SHA1.hpp"
 
-#include <vector>
+
+//0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+//+-+-+-+-+-------+-+-------------+-------------------------------+
+//|F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+//|I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+//|N|V|V|V|       |S|             |   (if payload len==126/127)   |
+//| |1|2|3|       |K|             |                               |
+//+-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+//|     Extended payload length continued, if payload len == 127  |
+//+ - - - - - - - - - - - - - - - +-------------------------------+
+//|                               |Masking-key, if MASK set to 1  |
+//+-------------------------------+-------------------------------+
+//| Masking-key (continued)       |          Payload Data         |
+//+-------------------------------- - - - - - - - - - - - - - - - +
+//:                     Payload Data continued ...                :
+//+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+//|                     Payload Data continued ...                |
+//+---------------------------------------------------------------+
 
 namespace ws
 {
@@ -24,6 +41,10 @@ namespace ws
 
 	WebSocketServer::~WebSocketServer()
 	{
+		for (SOCKET socket : m_Clients)
+		{
+			closesocket(socket);
+		}
 	}
 
 	void WebSocketServer::ConnectionAccepted(SOCKET socket)
@@ -46,6 +67,22 @@ namespace ws
 				printf("bytes received : %d\n", recv_size);
 
 				printf("%s\n", recvbuf);
+
+				
+				if (strstr(recvbuf, "GET"))
+				{
+					if (!strstr(recvbuf, "HTTP/1.1"))
+					{
+						printf("Invalid HTTP version\n");
+						continue;
+					}
+					printf("Valid HTTPRequest received\n");
+				}
+				else
+				{
+					printf("Was not a valid http request\n");
+					continue;
+				}
 
 				std::string key = GetRequestKey(recvbuf);
 				printf("%s\n", key.c_str());
@@ -73,6 +110,7 @@ namespace ws
 					//close_cleanup_client();
 				}
 				printf("bytes sent %d\n", iSendResult);
+				m_Clients.push_back(socket);
 				break;
 			}
 			else if (recv_size == 0)

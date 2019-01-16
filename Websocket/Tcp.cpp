@@ -35,6 +35,7 @@ namespace Socket
 	Tcp::~Tcp()
 	{
 		m_IsRunning = false;
+		Cleanup();
 	}
 
 
