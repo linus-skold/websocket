@@ -10,6 +10,13 @@
 #endif
 
 #include <cstdio>
+#include <string>
+
+#define SOCKET_ASSERT(condition, msg) \
+		char temp[512] = { 0 };\
+		sprintf_s(temp, "%s, error : %s\n", msg, GetLastError());\
+		assert(condition && temp);
+
 
 namespace Socket
 {
@@ -19,89 +26,100 @@ namespace Socket
 
 #ifdef _WIN32
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, WSAGetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(LPSTR)&str, 0, NULL);
+					  NULL, WSAGetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+					  (LPSTR)&str, 0, NULL);
 #endif
 		return str;
 	}
 
-	Tcp::Tcp(const char* listen_to_port, FSocketAccept accpet_callback)
+	Tcp::~Tcp()
 	{
+		m_IsRunning = false;
+	}
+
+
+	void Tcp::Bind(uint16_t port, FAcceptCallback callback)
+	{
+#ifdef _WIN32
 		WSADATA wsaData;
-		SOCKET listen_socket = INVALID_SOCKET;
-		SOCKET client_socket = INVALID_SOCKET;
+		int32_t error = WSAStartup(MAKEWORD(2, 2), &wsaData);
+		SOCKET_ASSERT(error == 0, "Failed to setup WSAData!");
+#endif
 
-		struct addrinfo * result = NULL;
 		struct addrinfo hints;
-
-		int err = WSAStartup(MAKEWORD(2, 2), &wsaData);
-		assert(err == 0 && "Failed to setup WSAData");
-
 		ZeroMemory(&hints, sizeof(hints));
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_protocol = IPPROTO_TCP;
 		hints.ai_flags = AI_PASSIVE;
 
-		err = getaddrinfo(nullptr, listen_to_port, &hints, &result);
-		if (err != 0)
+		struct addrinfo* result = nullptr;
+		error = getaddrinfo(nullptr, std::to_string(port).c_str(), &hints, &result);
+		if (error != 0)
 		{
-			//printf("failed with err %d\n", err);
-			assert(err == 0 && "getaddrinfo() failed to get hints & result");
-			WSACleanup();
+			SOCKET_ASSERT(error == 0, "getaddrinfo() failed to get hints & result");
+			Cleanup();
+			return;
 		}
 
 		//setup listener
-		listen_socket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-		if (listen_socket == INVALID_SOCKET)
+		m_Socket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+		if (m_Socket == INVALID_SOCKET)
 		{
-			//printf("failed to create listen socket %s\n", LastErr().c_str());
-			WSACleanup();
+			SOCKET_ASSERT(m_Socket, "failed to create listen socket");
 			freeaddrinfo(result);
-			WSACleanup();
+			Cleanup();
+			return;
 		}
 
-		err = bind(listen_socket, result->ai_addr, (int)result->ai_addrlen);
-		if (err == SOCKET_ERROR)
+		error = bind(m_Socket, result->ai_addr, (int)result->ai_addrlen);
+		if (error == SOCKET_ERROR)
 		{
-			//printf("failed to bind socket %s\n", LastErr().c_str());
+			SOCKET_ASSERT(error != SOCKET_ERROR, "failed to bind socket");
 			freeaddrinfo(result);
-			closesocket(listen_socket);
-			WSACleanup();
+			closesocket(m_Socket);
+			Cleanup();
+			return;
 		}
 
 		freeaddrinfo(result);
 
-		//
-		err = listen(listen_socket, SOMAXCONN);
-		if (err == SOCKET_ERROR)
+		error = listen(m_Socket, SOMAXCONN);
+		if (error == SOCKET_ERROR)
 		{
-			char _error[500];
-			sprintf_s(_error, "listen failed with error: %s\n", GetLastError());
-			assert(err != SOCKET_ERROR && _error);
-			closesocket(listen_socket);
-			WSACleanup();
+			SOCKET_ASSERT(error != SOCKET_ERROR, "listen failed");
+			closesocket(m_Socket);
+			Cleanup();
 		}
 
-		//end setup listener
+		m_IsRunning = true;
+
+		std::thread listen_thread([&, callback]() {
+
+			while (m_IsRunning)
+			{
+				SOCKET client_socket = INVALID_SOCKET;
+				client_socket = accept(m_Socket, NULL, NULL);
+				SOCKET_ASSERT(client_socket != INVALID_SOCKET, "Failed to accept connection!");
+
+				if (client_socket != INVALID_SOCKET)
+				{
+					callback(client_socket);
+				}
+			}
 
 
+		});
+		listen_thread.detach();
 
-		//wait for connection, this can be put on a thread? so it's non-blocking? 
-		client_socket = accept(listen_socket, NULL, NULL);
-		if (client_socket == INVALID_SOCKET)
-		{
-			//printf("accept failed with err : %s\n", LastErr().c_str());
-			closesocket(listen_socket); // should not be removed immediately. Max connection and stuffs
-			WSACleanup();
-		}
-
-		closesocket(listen_socket);
 	}
 
-
-	Tcp::~Tcp()
+	void Tcp::Cleanup()
 	{
+#ifdef _WIN32
+		WSACleanup();
+#endif
+
 	}
 
 };

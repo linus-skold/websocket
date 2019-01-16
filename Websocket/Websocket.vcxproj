@@ -116,10 +116,12 @@
   <ItemGroup>
     <ClCompile Include="SHA1.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Tcp.cpp" />
     <ClCompile Include="WebSocketServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SHA1.hpp" />
+    <ClInclude Include="Tcp.h" />
     <ClInclude Include="WebSocketServer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
