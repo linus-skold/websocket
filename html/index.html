@@ -5,14 +5,22 @@
     </head>
     <body>
         <div id="app">
-            {{ message }}
-            <h2 v-if="socket.readyState == OPEN">Connected</h2>
-            <h2 v-else-if="socket.readyState == CONNECTING">Attempting to connect...</h2>
-            <h2 v-else>No connection</h2>
+            {{ template }}
             <li v-for="item in items">
                 {{ item.message }}
             </li>
         </div>
+
+        <div id="connection-status">
+            <connection-status></connection-status>
+        </div>
+
+        <div id="demo">
+            <button-counter></button-counter>
+            <button-counter></button-counter>
+            <button-counter></button-counter>
+        </div>
+
     </body>
 
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>

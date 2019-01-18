@@ -1,7 +1,3 @@
-﻿  WebSocketServer.cpp
-  Tcp.cpp
-  Source.cpp
-  SHA1.cpp
-  Generating Code...
-  Websocket.vcxproj -> D:\Programming\websocket\Debug\Websocket.exe
-  Websocket.vcxproj -> D:\Programming\websocket\Debug\Websocket.pdb (Partial PDB)
+﻿  Source.cpp
+  Websocket.vcxproj -> E:\Programming\websocket\Debug\Websocket.exe
+  Websocket.vcxproj -> E:\Programming\websocket\Debug\Websocket.pdb (Partial PDB)
